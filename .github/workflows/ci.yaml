@@ -37,14 +37,6 @@ jobs:
         RUN_ID=$(cat run_output.txt | grep -oE "run with ID '[a-z0-9]+'" | awk '{print $4}' | tr -d "'")
         echo "LATEST_RUN_ID=$RUN_ID" >> $GITHUB_ENV
 
-    - name: Commit and Push Model Artifacts to GitHub
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add .
-        git diff-index --quiet HEAD || git commit -m "Automated: update trained model [skip ci]"
-        git push
-
     - name: Login to Docker Hub
       uses: docker/login-action@v2
       with:
