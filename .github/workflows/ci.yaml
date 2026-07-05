@@ -27,12 +27,18 @@ jobs:
       run: pip install mlflow==2.11.3 dagshub==0.3.24 pandas scikit-learn
 
     - name: Run mlflow project
-      run: python modelling.py
+      run: |
+        # Cari lokasi folder tempat modelling.py berada
+        PROJECT_DIR=$(find . -name "modelling.py" | xargs dirname)
+        echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+        cd "$PROJECT_DIR"
+        python modelling.py
 
     - name: Get latest MLflow run_id
       run: |
-        # Mengambil ID dari file yang dibuat modelling.py
-        echo "RUN_ID=$(cat RUN_ID.txt)" >> $GITHUB_ENV
+        # Ambil RUN_ID dari file di folder proyek
+        RUN_ID=$(cat "${{ env.PROJECT_DIR }}/RUN_ID.txt")
+        echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
 
     - name: Log in to Docker Hub
       run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
