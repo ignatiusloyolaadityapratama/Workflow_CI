@@ -1,4 +1,4 @@
-name: Iris_Species_Classification_Project
+name: model_training
 
 conda_env: conda.yaml
 
