@@ -8,7 +8,7 @@ def train_model_ci():
     mlflow.autolog(log_input_examples=True, log_model_signatures=True)
 
     # Membaca dataset dari folder lokal MLProject
-    df = pd.read_csv("MLProject/namadataset_preprocessing/iris_preprocessing.csv")
+    df = pd.read_csv("namadataset_preprocessing/iris_preprocessing.csv")
     X = df.drop(columns=['species'])
     y = df['species']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
