@@ -15,23 +15,30 @@ jobs:
       MLFLOW_TRACKING_URI: https://dagshub.com/ignatiusloyolaadityapratama/Eksperimen_SML_Ignatius-loyola-aditya-pratama-siswa.mlflow
 
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+    - name: Checkout
+      uses: actions/checkout@v3
 
-    - name: Train and Build
+    - name: Setup & Train
       run: |
         pip install mlflow==2.11.3 dagshub==0.3.24 pandas scikit-learn
-        # Jalankan skrip training
+        # Cari lokasi folder MLProject atau file modelling.py
+        PROJECT_DIR=$(find . -name "modelling.py" -exec dirname {} \;)
+        echo "Training di dalam folder: $PROJECT_DIR"
+        cd "$PROJECT_DIR"
+        
+        # Jalankan training
         python modelling.py
         
-        # Baca ID dari file yang dibuat skrip tadi
+        # Simpan path agar job berikutnya tahu di mana RUN_ID.txt berada
+        pwd > /home/runner/work/path.txt
+        
+    - name: Build and Push
+      run: |
+        cd $(cat /home/runner/work/path.txt)
         RUN_ID=$(cat RUN_ID.txt)
         
-        # Login Docker
         echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
         
-        # Build & Push
+        # Build Docker
         mlflow models build-docker -m "runs:/$RUN_ID/model" -n "${{ secrets.DOCKERHUB_USERNAME }}/iris-model:latest"
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/iris-model:latest
