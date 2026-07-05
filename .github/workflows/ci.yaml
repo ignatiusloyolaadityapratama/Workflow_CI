@@ -28,12 +28,10 @@ jobs:
 
     - name: Run MLflow Project Training
       env:
-        DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+        MLFLOW_TRACKING_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }} # Menggunakan username Docker Hub kamu yang sudah pasti ada
+        MLFLOW_TRACKING_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}    # Menggunakan token Docker Hub / password kamu
+        MLFLOW_TRACKING_URI: https://dagshub.com/ignatiusloyolaadityapratama/Eksperimen_SML_Ignatius-loyola-aditya-pratama-siswa.mlflow
       run: |
-        # Autentikasi aman tanpa token kosong
-        python -c "import dagshub, os; dagshub.auth.add_app_token(token=os.environ['DAGSHUB_TOKEN'])"
-        
-        # Jalankan training lokal agar terhindar dari eror 404 URL DagsHub
         mlflow run -e modelling.py MLProject --env-manager local --experiment-name "Iris_Species_Classification" > run_output.txt
         cat run_output.txt
         RUN_ID=$(cat run_output.txt | grep -oE "run with ID '[a-z0-9]+'" | awk '{print $4}' | tr -d "'")
@@ -46,6 +44,10 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build Docker Image via MLflow
+      env:
+        MLFLOW_TRACKING_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        MLFLOW_TRACKING_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+        MLFLOW_TRACKING_URI: https://dagshub.com/ignatiusloyolaadityapratama/Eksperimen_SML_Ignatius-loyola-aditya-pratama-siswa.mlflow
       run: |
         mlflow models build-docker -m "runs:/${{ env.LATEST_RUN_ID }}/model" -n "${{ secrets.DOCKERHUB_USERNAME }}/iris-model:latest" --enable-mlserver
 
