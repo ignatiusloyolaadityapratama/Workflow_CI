@@ -15,30 +15,30 @@ jobs:
       MLFLOW_TRACKING_URI: https://dagshub.com/ignatiusloyolaadityapratama/Eksperimen_SML_Ignatius-loyola-aditya-pratama-siswa.mlflow
 
     steps:
-    - name: Checkout
+    - name: Run actions/checkout@v3
       uses: actions/checkout@v3
 
-    - name: Setup & Train
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: pip install mlflow==2.11.3 dagshub==0.3.24 pandas scikit-learn
+
+    - name: Run mlflow project
+      run: python modelling.py
+
+    - name: Get latest MLflow run_id
       run: |
-        pip install mlflow==2.11.3 dagshub==0.3.24 pandas scikit-learn
-        # Cari lokasi folder MLProject atau file modelling.py
-        PROJECT_DIR=$(find . -name "modelling.py" -exec dirname {} \;)
-        echo "Training di dalam folder: $PROJECT_DIR"
-        cd "$PROJECT_DIR"
-        
-        # Jalankan training
-        python modelling.py
-        
-        # Simpan path agar job berikutnya tahu di mana RUN_ID.txt berada
-        pwd > /home/runner/work/path.txt
-        
-    - name: Build and Push
-      run: |
-        cd $(cat /home/runner/work/path.txt)
-        RUN_ID=$(cat RUN_ID.txt)
-        
-        echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-        
-        # Build Docker
-        mlflow models build-docker -m "runs:/$RUN_ID/model" -n "${{ secrets.DOCKERHUB_USERNAME }}/iris-model:latest"
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/iris-model:latest
+        # Mengambil ID dari file yang dibuat modelling.py
+        echo "RUN_ID=$(cat RUN_ID.txt)" >> $GITHUB_ENV
+
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+    - name: Build Docker Model
+      run: mlflow models build-docker -m "runs:/${{ env.RUN_ID }}/model" -n "${{ secrets.DOCKERHUB_USERNAME }}/iris-model:latest"
+
+    - name: Push Docker Image
+      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/iris-model:latest
