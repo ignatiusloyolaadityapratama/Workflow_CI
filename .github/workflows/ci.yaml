@@ -29,7 +29,7 @@ jobs:
           pip install mlflow==2.11.3 dagshub==0.3.24 pandas scikit-learn setuptools
 
       - name: Run mlflow project
-        run: mlflow run MLProject/ --no-conda
+        run: mlflow run MLProject/ --env-manager=local
 
       - name: Get latest MLflow run_id
         run: |
