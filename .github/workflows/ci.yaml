@@ -1,51 +1,27 @@
-name: Machine Learning CI Workflow
-
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
-jobs:
-  mlflow-ci-pipeline:
-    runs-on: ubuntu-latest
-    env:
-      MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
-      MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
-      MLFLOW_TRACKING_URI: https://dagshub.com/ignatiusloyolaadityapratama/Eksperimen_SML_Ignatius-loyola-aditya-pratama-siswa.mlflow
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install mlflow==2.11.3 dagshub==0.3.24 pandas scikit-learn setuptools
-
-    - name: Run mlflow project
-      run: |
-        # Cari direktori yang mengandung modelling.py
-        PROJECT_DIR=$(find . -name "modelling.py" | xargs dirname)
-        echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
-        cd "$PROJECT_DIR"
-        python modelling.py
+- name: Run mlflow project
+      # Menggantikan 'python modelling.py' dengan perintah MLflow Project
+      run: mlflow run MLProject/ --no-conda
 
     - name: Get latest MLflow run_id
       run: |
-        # Membaca file RUN_ID.txt yang dihasilkan modelling.py
-        RUN_ID=$(cat "${{ env.PROJECT_DIR }}/RUN_ID.txt")
+        # Pastikan skrip kamu menghasilkan file RUN_ID.txt di folder yang tepat
+        RUN_ID=$(cat MLProject/RUN_ID.txt)
         echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+
+    # Langkah Tambahan untuk LEVEL ADVANCED (Menyimpan Artefak)
+    - name: Upload model artifacts to GitHub
+      uses: actions/upload-artifact@v4
+      with:
+        name: trained-model-artifact
+        path: |
+          mlruns/
+          MLProject/
 
     - name: Log in to Docker Hub
       run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
     - name: Build Docker Model
+      # Menggunakan run_id yang didapat dari langkah sebelumnya
       run: mlflow models build-docker -m "runs:/${{ env.RUN_ID }}/model" -n "${{ secrets.DOCKERHUB_USERNAME }}/iris-model:latest"
 
     - name: Push Docker Image
