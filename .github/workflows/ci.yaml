@@ -24,11 +24,12 @@ jobs:
         python-version: '3.12'
 
     - name: Install dependencies
-      run: pip install mlflow==2.11.3 dagshub==0.3.24 pandas scikit-learn
+      run: |
+        pip install --upgrade pip
+        pip install mlflow==2.11.3 dagshub==0.3.24 pandas scikit-learn setuptools
 
     - name: Run mlflow project
       run: |
-        # Cari lokasi folder tempat modelling.py berada
         PROJECT_DIR=$(find . -name "modelling.py" | xargs dirname)
         echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
         cd "$PROJECT_DIR"
@@ -36,7 +37,6 @@ jobs:
 
     - name: Get latest MLflow run_id
       run: |
-        # Ambil RUN_ID dari file di folder proyek
         RUN_ID=$(cat "${{ env.PROJECT_DIR }}/RUN_ID.txt")
         echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
 
