@@ -25,8 +25,10 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install --upgrade pip
-        pip install mlflow==2.11.3 dagshub==0.3.24 pandas scikit-learn setuptools
+        python -m pip install --upgrade pip
+        # Memaksa instalasi setuptools agar pkg_resources tersedia
+        python -m pip install setuptools
+        python -m pip install mlflow==2.11.3 dagshub==0.3.24 pandas scikit-learn
 
     - name: Run mlflow project
       run: |
