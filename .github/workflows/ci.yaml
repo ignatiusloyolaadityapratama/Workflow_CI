@@ -32,7 +32,7 @@ jobs:
         MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
         MLFLOW_TRACKING_URI: https://dagshub.com/${{ secrets.DAGSHUB_USERNAME }}/Eksperimen_SML_Ignatius-loyola-aditya-pratama-siswa.mlflow
       run: |
-        mlflow run MLProject/ --no-conda --experiment-name "Iris_Species_Classification" > run_output.txt
+        mlflow run MLProject/ --env-manager local --experiment-name "Iris_Species_Classification" > run_output.txt
         cat run_output.txt
         RUN_ID=$(cat run_output.txt | grep -oE "run with ID '[a-z0-9]+'" | awk '{print $4}' | tr -d "'")
         echo "LATEST_RUN_ID=$RUN_ID" >> $GITHUB_ENV
